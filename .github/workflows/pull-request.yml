@@ -1,0 +1,60 @@
+name: "Close PR on Failure"
+
+on:
+  pull_request:
+    branches: ["dev"]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check commit messages
+        id: check-commits
+        run: |
+          GITHUB_OUTPUT=test
+          # 커밋 메시지 검사
+          COMMIT_MSG=$(git log --format=%B -n 1)
+          COMMIT_MSG="fix:test"
+          KEYWORDS=("fix" "feat" "chore" "docs" "style" "refactor" "test" "perf")
+          URL_PATTERN="https://well-check.atlassian.net" 
+          echo "status=fail" >> "$GITHUB_OUTPUT"
+
+          # 키워드 확인
+          STATUS_CHECK=false
+          for keyword in "${KEYWORDS[@]}"; do
+            if [[ "$COMMIT_MSG" =~ $keyword: ]]; then
+              STATUS_CHECK=true
+              break
+            fi
+          done
+
+          if [ "$STATUS_CHECK" != true ]; then
+            echo "message=Missing required keywords ($KEYWORDS)" >> "$GITHUB_OUTPUT"  
+            STATUS_CHECK=ture
+          else
+            # URL 검사
+            if ! [[ "$COMMIT_MSG" =~ $URL_PATTERN ]]; then
+              echo "message=Commit message does not contain required URL." >> "$GITHUB_OUTPUT"  
+              STATUS_CHECK=false  # URL이 없으면 키워드 검사 결과도 무시
+            else
+              echo "status=success" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Run build
+        if: steps.check-commits.outputs.status == 'success'
+        run: npm install && npm run build
+        # 빌드 실패 시 status를 fail로 설정합니다.
+        continue-on-error: true
+
+      - name: Close Pull
+        if: steps.check-commits.outputs.status == 'fail' || failure()
+        uses: peter-evans/close-pull@v3
+        with:
+          pull-request-number: 1
+          comment: "Build failed or invalid commit message, closing PR."
+          delete-branch: false
