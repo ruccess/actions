@@ -71,12 +71,14 @@ jobs:
         run: npm run build
         continue-on-error: true
 
-      - name: Leave comment on PR
-        if: env.status == 'fail'
-        uses: peter-evans/create-or-update-comment@v1
+      - name:  Leave comment on PR
+        uses: peter-evans/create-or-update-comment@v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body: "Failed at step ${{ env.step }}: ${{ env.message }}"
+          body: |
+            This is a multi-line test comment
+            "Failed at step ${{ env.step }}: ${{ env.message }}"
+          reactions: '+1'
 
       - name: Close Pull
         if: env.status == 'fail' || failure()
