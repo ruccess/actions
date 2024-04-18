@@ -8,13 +8,14 @@ on:
 jobs:
   check-and-build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14.x, 16.x, 18.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          cache: 'npm'
 
       - name: Check commit messages
         id: check-commits
@@ -22,10 +23,10 @@ jobs:
           GITHUB_OUTPUT=test
           # 커밋 메시지 검사
           COMMIT_MSG=$(git log --format=%B -n 1)
-          COMMIT_MSG="fix:test"
           KEYWORDS=("fix" "feat" "chore" "docs" "style" "refactor" "test" "perf")
           URL_PATTERN="https://well-check.atlassian.net" 
           echo "status=fail" >> "$GITHUB_OUTPUT"
+          echo "step=Check commit messages" >> "$GITHUB_OUTPUT"
 
           # 키워드 확인
           STATUS_CHECK=false
@@ -37,36 +38,49 @@ jobs:
           done
 
           if [ "$STATUS_CHECK" != true ]; then
-            echo "message=Missing required keywords ($KEYWORDS)" >> "$GITHUB_OUTPUT"  
-            STATUS_CHECK=ture
+            echo "message=Missing required keywords ($KEYWORDS)." >> "$GITHUB_OUTPUT"
+            echo "status=fail" >> "$GITHUB_OUTPUT"
           else
             # URL 검사
             if ! [[ "$COMMIT_MSG" =~ $URL_PATTERN ]]; then
-              echo "message=Commit message does not contain required URL." >> "$GITHUB_OUTPUT"  
-              STATUS_CHECK=false  # URL이 없으면 키워드 검사 결과도 무시
+              echo "message=Commit message does not contain required URL." >> "$GITHUB_OUTPUT"
+              echo "status=fail" >> "$GITHUB_OUTPUT"
             else
               echo "status=success" >> "$GITHUB_OUTPUT"
             fi
           fi
-
-      - name: Run build
-        if: steps.check-commits.outputs.status == 'success'
-        run: npm install && npm run build
-        # 빌드 실패 시 status를 fail로 설정합니다.
         continue-on-error: true
 
+      - name: Install dependencies
+        if: env.status == 'success'
+        run: npm install
+        continue-on-error: true
+
+      - name: Run lint
+        if: env.status == 'success'
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run tests
+        if: env.status == 'success'
+        run: npm test
+        continue-on-error: true
+
+      - name: Run build
+        if: env.status == 'success'
+        run: npm run build
+        continue-on-error: true
+
+      - name: Leave comment on PR
+        if: env.status == 'fail'
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: "Failed at step ${{ env.step }}: ${{ env.message }}"
+
       - name: Close Pull
-        if: steps.check-commits.outputs.status == 'fail' || failure()
+        if: env.status == 'fail' || failure()
         uses: peter-evans/close-pull@v3
         with:
-          pull-request-number: 1
-          comment: "Build failed or invalid commit message, closing PR."
+          comment: "Closing this PR due to failures."
           delete-branch: false
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm run build
-      - run: npm run lint
