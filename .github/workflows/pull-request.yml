@@ -21,13 +21,12 @@ jobs:
       - name: Check commit messages
         id: check-commits
         run: |
-          GITHUB_OUTPUT=test
           # 커밋 메시지 검사
           COMMIT_MSG=$(git log --format=%B -n 1)
           KEYWORDS=("fix" "feat" "chore" "docs" "style" "refactor" "test" "perf")
           URL_PATTERN="https://well-check.atlassian.net" 
-          echo "status=fail" >> "$GITHUB_OUTPUT"
-          echo "step=Check commit messages" >> "$GITHUB_OUTPUT"
+          echo "status=fail" >> "$GITHUB_ENV"
+          echo "step=Check commit messages" >> "$GITHUB_ENV"
 
           # 키워드 확인
           STATUS_CHECK=false
@@ -39,15 +38,15 @@ jobs:
           done
 
           if [ "$STATUS_CHECK" != true ]; then
-            echo "message=Missing required keywords ($KEYWORDS)." >> "$GITHUB_OUTPUT"
-            echo "status=fail" >> "$GITHUB_OUTPUT"
+            echo "message=Missing required keywords ($KEYWORDS)." >> "$GITHUB_ENV"
+            echo "status=fail" >> "$GITHUB_ENV"
           else
             # URL 검사
             if ! [[ "$COMMIT_MSG" =~ $URL_PATTERN ]]; then
-              echo "message=Commit message does not contain required URL." >> "$GITHUB_OUTPUT"
-              echo "status=fail" >> "$GITHUB_OUTPUT"
+              echo "message=Commit message does not contain required URL." >> "$GITHUB_ENV"
+              echo "status=fail" >> "$GITHUB_ENV"
             else
-              echo "status=success" >> "$GITHUB_OUTPUT"
+              echo "status=success" >> "$GITHUB_ENV"
             fi
           fi
         continue-on-error: true
@@ -85,5 +84,5 @@ jobs:
         if: env.status == 'fail' || failure()
         uses: peter-evans/close-pull@v3
         with:
-          comment: "Failed at step ${{ env.step }}: ${{ env.message }}"
+          comment: "fail!"
           delete-branch: false
