@@ -30,10 +30,10 @@ jobs:
 
           echo "key word test"
           echo "key word test"
-          echo ${{ COMMIT_MSG }}
+          echo $COMMIT_MSG
           echo ${{ github.event.workflow_run.head_commit.message }}
           echo ${{ github.event.head_commit.message }}
-          echo echo "${{toJSON(github.event)}}"
+          echo "${{toJSON(github.event)}}"
           echo ${{ github.event.commits[0].message }}
           echo $(git log -1 --no-merges --pretty=%B)
 
