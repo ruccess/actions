@@ -3,7 +3,7 @@ name: "Close PR on Failure"
 on:
   pull_request:
     branches: ["dev"]
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened]
 
 jobs:
   check-and-build:
@@ -84,5 +84,4 @@ jobs:
         if: env.status == 'fail' || failure()
         uses: peter-evans/close-pull@v3
         with:
-          comment: "fail!"
           delete-branch: false
