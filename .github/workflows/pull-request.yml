@@ -22,7 +22,7 @@ jobs:
         id: check-commits
         run: |
           # 커밋 메시지 검사
-          COMMIT_MSG=$(git log -1 --no-merges --pretty=%B)
+          COMMIT_MSG=$(git log -10 --no-merges --pretty=%B)
           KEYWORDS=("fix" "feat" "chore" "docs" "style" "refactor" "test" "perf")
           URL_PATTERN="https://well-check.atlassian.net" 
           echo "status=fail" >> "$GITHUB_ENV"
