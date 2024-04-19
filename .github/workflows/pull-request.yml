@@ -76,5 +76,6 @@ jobs:
         if: env.status == 'fail' || failure()
         uses: peter-evans/close-pull@v3
         with:
+          token: ${{ secrets.PR_TOKEN  }}
           comment: "Failed at step ${{ env.step }}: ${{ env.message }}"
           delete-branch: false
