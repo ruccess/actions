@@ -28,6 +28,9 @@ jobs:
           echo "status=fail" >> "$GITHUB_ENV"
           echo "step=Check commit messages" >> "$GITHUB_ENV"
 
+          echo "key word test"
+          echo $COMMIT_MSG
+
           # 키워드 확인
           STATUS_CHECK=false
           for keyword in "${KEYWORDS[@]}"; do
@@ -38,7 +41,7 @@ jobs:
           done
 
           if [ "$STATUS_CHECK" != true ]; then
-            echo "message=Missing required keywords ($KEYWORDS)." >> "$GITHUB_ENV"
+            echo "message=Missing required keywords ( ${KEYWORDS} )." >> "$GITHUB_ENV"
             echo "status=fail" >> "$GITHUB_ENV"
           else
             # URL 검사
