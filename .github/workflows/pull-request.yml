@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TOKENS  }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -73,10 +75,9 @@ jobs:
         continue-on-error: true
 
       - name:  Leave comment on PR
-        env:
-          GH_TOKEN: ${{ secrets.PR_TOKEN }}
         uses: peter-evans/create-or-update-comment@v4.0.0
         with:
+          token: ${{ secrets.PR_TOKEN  }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             This is a multi-line test comment
@@ -84,10 +85,9 @@ jobs:
           reactions: '+1'
 
       - name: Close Pull
-        env:
-          GH_TOKEN: ${{ secrets.PR_TOKEN }}
         if: env.status == 'fail' || failure()
         uses: peter-evans/close-pull@v3
         with:
           comment: "Closing this PR due to failures."
           delete-branch: false
+          token: ${{ secrets.PR_TOKEN  }}
