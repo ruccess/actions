@@ -3,10 +3,12 @@ name: "Close PR on Failure"
 on:
   pull_request:
     branches: ["dev"]
-    types: [opened, reopened]
+    types: [opened, synchronize, reopened]
 
 jobs:
   check-and-build:
+    env: 
+      URL_PATTERN: https://well-check.atlassian.net
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -22,32 +24,27 @@ jobs:
         id: check-commits
         run: |
           # 커밋 메시지 검사
-          COMMIT_MSG=git log -1 --pretty=format:"%s"||${{ github.event.workflow_run.head_commit.message }}||${{ github.event.workflow_run.head_commit.message }}
-          KEYWORDS=("fix" "feat" "chore" "docs" "style" "refactor" "test" "perf")
-          URL_PATTERN="https://well-check.atlassian.net" 
-          echo "status=fail" >> "$GITHUB_ENV"
-          echo "step=Check commit messages" >> "$GITHUB_ENV"
+          echo "COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_OUTPUT"
+          echo "KEYWORD=fix feat chore"
 
-          echo "key word test"
-          echo "key word test"
-          echo ${{ COMMIT_MSG }}
-          echo ${{ KEYWORDS }}
-
+          echo ${{env.URL_PATTERN}}
+          echo ${{github.event.commits}}
+          
           # 키워드 확인
-          STATUS_CHECK=false
-          for keyword in "${KEYWORDS[@]}"; do
-            if [[ "$COMMIT_MSG" =~ $keyword: ]]; then
-              STATUS_CHECK=true
+          echo "STATUS_CHECK=fail" >> "$GITHUB_OUTPUT"
+          for keyword in ${{steps.check-commits.outputs.KEYWORD}}; do
+            if [[ ${{steps.check-commits.outputs.COMMIT_MSG}} =~ $keyword: ]]; then
+              "STATUS_CHECK=true" >> "$GITHUB_OUTPUT"
               break
             fi
           done
 
-          if [ "$STATUS_CHECK" != true ]; then
+          if [ ${{steps.check-commits.outputs.STATUS_CHECK}} != true ]; then
             echo "message=Missing required keywords ( ${KEYWORDS} )." >> "$GITHUB_ENV"
             echo "status=fail" >> "$GITHUB_ENV"
           else
             # URL 검사
-            if ! [[ "$COMMIT_MSG" =~ $URL_PATTERN ]]; then
+            if ! [[ ${{steps.check-commits.outputs.COMMIT_MSG}} =~ $URL_PATTERN ]]; then
               echo "message=Commit message does not contain required URL." >> "$GITHUB_ENV"
               echo "status=fail" >> "$GITHUB_ENV"
             else
