@@ -7,9 +7,6 @@ on:
 
 jobs:
   check-and-build:
-    strategy:
-      matrix:
-        KEYWORDS: ["fix", "feat", "chore", "docs", "style", "refactor", "test", "perf"]
     env: 
       URL_PATTERN: https://well-check.atlassian.net
     runs-on: ubuntu-latest
@@ -27,7 +24,9 @@ jobs:
         id: check-commits
         run: |
           # 커밋 메시지 검사
-           echo "COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_ENV"
+          echo "COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_ENV"
+
+          echo {{env.COMMIT_MSG}}
           
           # 키워드 확인
           echo "STATUS_CHECK=fail" >> "$GITHUB_ENV"
