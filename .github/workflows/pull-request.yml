@@ -29,6 +29,7 @@ jobs:
 
           echo ${{env.URL_PATTERN}}
           echo ${{github.event.commits}}
+          echo "TEST"
           
           # 키워드 확인
           echo "STATUS_CHECK=fail" >> "$GITHUB_OUTPUT"
