@@ -25,7 +25,7 @@ jobs:
         run: |
           # 커밋 메시지 검사
           echo "COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_OUTPUT"
-          echo "KEYWORD=fix feat chore"
+          echo "KEYWORD=fix feat chore" >> "$GITHUB_OUTPUT"
 
           echo ${{env.URL_PATTERN}}
           echo ${{github.event.commits}}
