@@ -26,23 +26,23 @@ jobs:
           # 커밋 메시지 검사
           echo "COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_ENV"
 
-          echo {{env.COMMIT_MSG}}
+          echo ${{env.COMMIT_MSG}}
           
           # 키워드 확인
           echo "STATUS_CHECK=fail" >> "$GITHUB_ENV"
           for keyword in "${KEYWORDS[@]}"; do
-            if [[ {{env.COMMIT_MSG}} =~ $keyword: ]]; then
+            if [[ ${{env.COMMIT_MSG}} =~ $keyword: ]]; then
               STATUS_CHECK=true
               break
             fi
           done
 
-          if [ {{env.STATUS_CHECK}} != true ]; then
+          if [ ${{env.STATUS_CHECK}} != true ]; then
             echo "message=Missing required keywords ( ${KEYWORDS} )." >> "$GITHUB_ENV"
             echo "status=fail" >> "$GITHUB_ENV"
           else
             # URL 검사
-            if ! [[ {{env.COMMIT_MSG}} =~ $URL_PATTERN ]]; then
+            if ! [[ ${{env.COMMIT_MSG}} =~ $URL_PATTERN ]]; then
               echo "message=Commit message does not contain required URL." >> "$GITHUB_ENV"
               echo "status=fail" >> "$GITHUB_ENV"
             else
