@@ -7,6 +7,11 @@ on:
 
 jobs:
   check-and-build:
+    strategy:
+      matrix:
+        KEYWORDS: ["fix", "feat", "chore", "docs", "style", "refactor", "test", "perf"]
+    env: 
+      URL_PATTERN: https://well-check.atlassian.net
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -22,36 +27,23 @@ jobs:
         id: check-commits
         run: |
           # 커밋 메시지 검사
-          COMMIT_MSG=$(git log --no-merges -1 --oneline)
-          KEYWORDS=("fix" "feat" "chore" "docs" "style" "refactor" "test" "perf")
-          URL_PATTERN="https://well-check.atlassian.net" 
-          echo "status=fail" >> "$GITHUB_ENV"
-          echo "step=Check commit messages" >> "$GITHUB_ENV"
-
-          echo $(git log --no-merges -1 --oneline)
-          echo "한국어도 잘 나오나?"
-          echo ${COMMIT_MSG} 
-          echo ${{ github.event.workflow_run.head_commit.message }}
-          echo ${{ github.event.head_commit.message }}
-          echo "${{toJSON(github.event)}}"
-          echo ${{ github.event.commits[0].message }}
-          echo $(git log -1 --no-merges --pretty=%B)
-
+           echo "COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_ENV"
+          
           # 키워드 확인
-          STATUS_CHECK=false
+          echo "STATUS_CHECK=fail" >> "$GITHUB_ENV"
           for keyword in "${KEYWORDS[@]}"; do
-            if [[ "$COMMIT_MSG" =~ $keyword: ]]; then
+            if [[ {{env.COMMIT_MSG}} =~ $keyword: ]]; then
               STATUS_CHECK=true
               break
             fi
           done
 
-          if [ "$STATUS_CHECK" != true ]; then
+          if [ {{env.STATUS_CHECK}} != true ]; then
             echo "message=Missing required keywords ( ${KEYWORDS} )." >> "$GITHUB_ENV"
             echo "status=fail" >> "$GITHUB_ENV"
           else
             # URL 검사
-            if ! [[ "$COMMIT_MSG" =~ $URL_PATTERN ]]; then
+            if ! [[ {{env.COMMIT_MSG}} =~ $URL_PATTERN ]]; then
               echo "message=Commit message does not contain required URL." >> "$GITHUB_ENV"
               echo "status=fail" >> "$GITHUB_ENV"
             else
