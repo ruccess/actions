@@ -3,7 +3,7 @@ name: "Close PR on Failure"
 on:
   pull_request:
     branches: ["dev"]
-    types: [opened, reopened]
+    types: [opened, synchronize, reopened]
 
 jobs:
   check-and-build:
@@ -29,7 +29,7 @@ jobs:
           echo "step=Check commit messages" >> "$GITHUB_ENV"
 
           echo "key word test"
-          echo "key word test"
+          echo "한국어도 잘 나오나?"
           echo $COMMIT_MSG
           echo ${{ github.event.workflow_run.head_commit.message }}
           echo ${{ github.event.head_commit.message }}
