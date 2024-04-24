@@ -15,8 +15,8 @@ jobs:
       message: ""
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        id: checkout-code
+      - id: checkout-code
+        name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -26,10 +26,10 @@ jobs:
           node-version: 'node'
           cache: 'npm'
         
-      - name: Check commit messages
+      - id: check-commits
+        name: Check commit messages
         env: 
           dsadsa: "dsadads"
-        id: check-commits
         run: |
           # 키워드 확인
           echo "STATUS_CHECK=fail" >> "$Env:GITHUB_OUTPUT"
