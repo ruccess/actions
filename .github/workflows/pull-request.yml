@@ -4,92 +4,76 @@ on:
   pull_request:
     branches: ["dev"]
     types: [opened, synchronize, reopened]
+
 jobs:
   check-and-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        id: checkout-code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+      
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 'node'
           cache: 'npm'
-      - id: check-commits
-        name: Check commit messages
-        env: 
-          KEYWORDS: '[\"1\",\"2\",\"3\"]'
-          URL_PATTERN: https://well-check.atlassian.net
-          status: false
-        run: |
-    
-          echo "version1='[\"1\",\"2\",\"3\"]'" >> "$GITHUB_OUTPUT"
-          echo "version2=[\"1\",\"2\",\"3\"]" >> "$GITHUB_OUTPUT"
-          # 키워드 확인
-          echo $URL_PATTERN
-          echo $status
-          echo $KEYWORDS
-          echo "status=true" >> "$GITHUB_ENV"
-          echo "status=true" >> "$GITHUB_OUTPUT"
-          echo ${{ steps.check-commits.outputs.status }}
-          
-          
-          for keyword in ${{env.KEYWORDS}}; do
-            if [[ $(git show -s --format=%s) =~ "fix feat chore" ]]; then
-              echo "STATUS_CHECK=true" >> "$GITHUB_OUTPUT"
-              break
-            fi
-          done
 
-          if [ ${{env.STATUS_CHECK}} != true ]; then
-            echo "message=Missing required keywords ( ${KEYWORDS} )." >> "$GITHUB_ENV"
-            echo "status=fail" >> "$GITHUB_ENV"
-          else
-            # URL 검사
-            if ! [[ $(git show -s --format=%s) =~ ${{env.URL_PATTERN}} ]]; then
-              echo "message=Commit message does not contain required URL." >> "$GITHUB_ENV"
-              echo "status=fail" >> "$GITHUB_ENV"
-            else
-              echo "status=success" >> "$GITHUB_ENV"
-            fi
+      - name: Check commit messages
+        id: check-commits
+        run: |
+          KEYWORDS='["1","2","3"]'
+          URL_PATTERN='https://well-check.atlassian.net'
+          COMMIT_MSG=$(git show -s --format=%s)
+          echo "KEYWORDS=$KEYWORDS" >> $GITHUB_ENV
+          echo "URL_PATTERN=$URL_PATTERN" >> $GITHUB_ENV
+          
+          STATUS="success"
+          echo "Checking commit messages..."
+          if ! [[ $COMMIT_MSG =~ "fix" || $COMMIT_MSG =~ "feat" || $COMMIT_MSG =~ "chore" ]]; then
+            STATUS="fail"
+            echo "Missing required keywords."
           fi
+          
+          if ! [[ $COMMIT_MSG =~ $URL_PATTERN ]]; then
+            STATUS="fail"
+            echo "Commit message does not contain required URL."
+          fi
+
+          echo "STATUS=$STATUS" >> $GITHUB_ENV
+          
         shell: bash
         continue-on-error: true
 
       - name: Install dependencies
-        if: env.status == 'success'
+        if: env.STATUS == 'success'
         run: npm install
         continue-on-error: true
 
       - name: Run lint
-        if: env.status == 'success'
+        if: env.STATUS == 'success'
         run: npm run lint
         continue-on-error: true
 
       - name: Run tests
-        if: env.status == 'success'
+        if: env.STATUS == 'success'
         run: npm test
         continue-on-error: true
 
       - name: Run build
-        if: env.status == 'success'
+        if: env.STATUS == 'success'
         run: npm run build
         continue-on-error: true
 
-      - name:  Leave comment on PR
+      - name: Leave comment on PR
+        if: env.STATUS == 'fail'
         uses: peter-evans/create-or-update-comment@v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            This is a multi-line test comment
-            "Failed at step ${{ env.step }}: ${{ env.message }}"
+          body: "Failed at step: ${{ env.STATUS }}"
           reactions: '+1'
 
       - name: Close Pull
-        if: env.status == 'fail' || failure()
+        if: env.STATUS == 'fail' || failure()
         uses: peter-evans/close-pull@v3
-        with:
-          delete-branch: false
