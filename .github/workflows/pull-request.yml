@@ -37,7 +37,7 @@ jobs:
           echo ${{ steps.check-commits.outputs.status }}
           
           
-          for keyword in ${{steps.test.outputs.KEYWORD}}; do
+          for keyword in ${{env.KEYWORDS}}; do
             if [[ $(git show -s --format=%s) =~ "fix feat chore" ]]; then
               echo "STATUS_CHECK=true" >> "$GITHUB_OUTPUT"
               break
