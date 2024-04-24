@@ -13,33 +13,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
+        id: test
         uses: actions/checkout@v4
         with:
           ref: ${{ env.GITHUB_SHA }}
+          run: | 
+            echo "HEAD_COMMIT_MESSAGE=$(git show -s --format=%s)" >> "$GITHUB_OUTPUT"
+            echo "KEYWORD=fix feat chore" >> "$GITHUB_OUTPUT"
+            
+            echo ${{env.URL_PATTERN}}
+            echo "${{github.event.head_commit.message}}"
+            echo "${{github.event.commits[0].message}}"
+            echo "${{steps.test.outputs.HEAD_COMMIT_MESSAGE}}"
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 'node'
           cache: 'npm'
-
       - name: Check commit messages
         id: check-commits
         run: |
           # 커밋 메시지 검사
+          echo "$(git show -s --format=%s)" 
           echo "COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_OUTPUT"
-          echo "KEYWORD=fix feat chore" >> "$GITHUB_OUTPUT"
           
           echo "HEAD_COMMIT_MESSAGE=$(git show -s --format=%s)" >> "$GITHUB_OUTPUT"
+          echo "HEAD_COMMIT_MESSAGE=$(git show -s --format=%s)" >> "$GITHUB_OUTPUT"
 
-          echo ${{env.URL_PATTERN}}
-          echo "${{github.event.head_commit.message}}"
-          echo "${{github.event.commits[0].message}}"
-          echo "${{github.event}}"
           echo "TEST"
           
           # 키워드 확인
           echo "STATUS_CHECK=fail" >> "$GITHUB_OUTPUT"
-          for keyword in ${{steps.check-commits.outputs.KEYWORD}}; do
+          for keyword in ${{steps.test.outputs.KEYWORD}}; do
             if [[ ${{steps.check-commits.outputs.COMMIT_MSG}} =~ $keyword: ]]; then
               "STATUS_CHECK=true" >> "$GITHUB_OUTPUT"
               break
