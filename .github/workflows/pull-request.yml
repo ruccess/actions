@@ -32,17 +32,17 @@ jobs:
 
           if [[ (! $COMMIT_MSG =~ "fix" && ! $COMMIT_MSG =~ "feat" && ! $COMMIT_MSG =~ "chore") || (! $COMMIT_MSG =~ $URL_PATTERN) ]]; then
             echo "Commit message validation failed."
-            echo "outcome=fail" >> $GITHUB_OUTPUT
+            echo "outcome=fail" > $GITHUB_OUTPUT
           else
           
-            echo "outcome=success" >> $GITHUB_OUTPUT
+            echo "outcome=success" > $GITHUB_OUTPUT
           fi
           outcome=tesdt
           echo $outcome
           echo $commit_status
           echo ${{env.test}}
 
-          echo "test=das;kdls;ad" >> $GITHUB_ENV
+          echo "test=das;kdls;ad" > $GITHUB_ENV
           echo ${{env.test}}
 
   build-and-test:
@@ -58,7 +58,7 @@ jobs:
         run: |
           npm install
           echo ${{needs.validate-commit-message.outputs.commit_status}}
-          echo "outcome=success" >> $GITHUB_OUTPUT
+          echo "outcome=success" > $GITHUB_OUTPUT
           
         continue-on-error: true
 
