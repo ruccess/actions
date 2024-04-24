@@ -29,7 +29,7 @@ jobs:
           echo "STATUS_CHECK=fail" >> "$GITHUB_OUTPUT"
           for keyword in ${{steps.test.outputs.KEYWORD}}; do
             if [[ $(git show -s --format=%s) =~ "fix feat chore" ]]; then
-              "STATUS_CHECK=true" >> "$GITHUB_OUTPUT"
+              echo "STATUS_CHECK=true" >> "$GITHUB_OUTPUT"
               break
             fi
           done
@@ -39,7 +39,7 @@ jobs:
             echo "status=fail" >> "$GITHUB_ENV"
           else
             # URL 검사
-            if ! [[ ${{steps.check-commits.outputs.COMMIT_MSG}} =~ ${{env.URL_PATTERN}} ]]; then
+            if ! [[ $(git show -s --format=%s) =~ ${{env.URL_PATTERN}} ]]; then
               echo "message=Commit message does not contain required URL." >> "$GITHUB_ENV"
               echo "status=fail" >> "$GITHUB_ENV"
             else
