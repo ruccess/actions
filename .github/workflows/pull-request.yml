@@ -50,6 +50,7 @@ jobs:
         id: install
         run: |
           npm install
+          echo ${{needs.validate-commit-message.outputs.commit_status}}
           echo "outcome=success" >> $GITHUB_OUTPUT
           
         continue-on-error: true
