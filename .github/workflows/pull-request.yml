@@ -22,7 +22,7 @@ jobs:
       - name: Check commit messages
         id: check-commit
         run: |
-          COMMIT_MSG=$(git log --no-merges -n 1
+          COMMIT_MSG=$(git log --no-merges -n 1)
           URL_PATTERN='https://well-check.atlassian.net'
 
           if [[ $COMMIT_MSG =~ fix|feat|chore ]] && [[ $COMMIT_MSG =~ $URL_PATTERN ]]; then
