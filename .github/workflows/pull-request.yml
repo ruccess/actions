@@ -25,6 +25,18 @@ jobs:
           COMMIT_MSG=$(git log --no-merges -n 1)
           URL_PATTERN='https://well-check.atlassian.net'
 
+          echo "Commit Message: $COMMIT_MSG"
+          echo "URL Pattern: $URL_PATTERN"
+          
+          # Check individual conditions
+          if ! [[ $COMMIT_MSG =~ "fix" || $COMMIT_MSG =~ "feat" || $COMMIT_MSG =~ "chore" ]]; then
+            echo "Keyword condition failed."
+          fi
+          if ! [[ $COMMIT_MSG =~ $URL_PATTERN ]]; then
+            echo "URL pattern condition failed."
+          fi
+          
+
           if [[ $COMMIT_MSG =~ fix|feat|chore ]] && [[ $COMMIT_MSG =~ $URL_PATTERN ]]; then
             echo "outcome=success" >> $GITHUB_OUTPUT
           else
