@@ -36,7 +36,7 @@ jobs:
           echo "version1='[\"1\",\"2\",\"3\"]'" >> "$Env:GITHUB_OUTPUT"
           echo "version2=[\"1\",\"2\",\"3\"]" >> "$Env:GITHUB_OUTPUT"
           
-          echo ${{ toJson(steps.checkout-code) }}
+          echo ${{ toJson(steps) }}
           echo ${{ toJson(steps.check-commits.outputs) }}
           echo ${{ toJson(steps.checkout-code.outputs) }}
           echo ${{ toJson(steps.check-commits) }}
