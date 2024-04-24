@@ -38,7 +38,7 @@ jobs:
 
           
           echo "asdasddsaasd" >> $GITHUB_STEP_SUMMARY
-          echo ${{$GITHUB_STEP_SUMMARY}}
+          cat $GITHUB_STEP_SUMMARY 
           
           outcome=tesdt
           echo $outcome
@@ -69,7 +69,7 @@ jobs:
           echo "outcome=success" >> $GITHUB_OUTPUT
           
           echo "asdasddsaasd" >> $GITHUB_STEP_SUMMARY
-          echo ${{$GITHUB_STEP_SUMMARY}}
+          cat $GITHUB_STEP_SUMMARY 
         continue-on-error: true
 
       - name: Run lint
