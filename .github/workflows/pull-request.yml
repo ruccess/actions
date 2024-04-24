@@ -10,6 +10,7 @@ jobs:
     env: 
       URL_PATTERN: https://well-check.atlassian.net
       
+      
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -26,7 +27,7 @@ jobs:
         id: check-commits
         run: |
           # 키워드 확인
-          echo "STATUS_CHECK=fail" >> "$GITHUB_OUTPUT"
+          echo "STATUS_CHECK=fail" >> "$GITHUB_ENV"
           for keyword in ${{steps.test.outputs.KEYWORD}}; do
             if [[ $(git show -s --format=%s) =~ "fix feat chore" ]]; then
               echo "STATUS_CHECK=true" >> "$GITHUB_OUTPUT"
@@ -34,7 +35,7 @@ jobs:
             fi
           done
 
-          if [ ${{steps.check-commits.outputs.STATUS_CHECK}} != true ]; then
+          if [ ${{env.STATUS_CHECK}} != true ]; then
             echo "message=Missing required keywords ( ${KEYWORDS} )." >> "$GITHUB_ENV"
             echo "status=fail" >> "$GITHUB_ENV"
           else
