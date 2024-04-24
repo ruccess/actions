@@ -6,17 +6,40 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  build-and-test:
+  validate-commit-message:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Check commit messages
+        run: |
+          COMMIT_MSG=$(git show -s --format=%B)
+          if [[ "$COMMIT_MSG" =~ ^Merge\ pull\ request ]]; then
+            echo "Skipping merge commit."
+            echo "status=success" >> $GITHUB_ENV
+          else
+            echo "Commit Message: $COMMIT_MSG"
+            KEYWORDS='["1","2","3"]'
+            URL_PATTERN='https://well-check.atlassian.net'
+            STATUS="fail"
+            if [[ "$COMMIT_MSG" =~ "fix" || "$COMMIT_MSG" =~ "feat" || "$COMMIT_MSG" =~ "chore" ]]; then
+              if [[ "$COMMIT_MSG" =~ $URL_PATTERN ]]; then
+                STATUS="success"
+              fi
+            fi
+            echo "status=$STATUS" >> $GITHUB_ENV
+            if [[ "$STATUS" == "fail" ]]; then
+              echo "Commit message validation failed."
+            fi
+
+  build-and-test:
+    needs: validate-commit-message
+    runs-on: ubuntu-latest
+    if: env.status == 'success'
+    steps:
       - name: Set up Node.js
         uses: actions/setup-node@v4
-
-      - name: Log Git Commit
-        run: echo "Git Commit $(git show -s --format=%B)"
 
       - name: Install dependencies
         id: install
@@ -41,24 +64,21 @@ jobs:
       - name: Check for failures
         id: check-failures
         run: |
-          if [ ${{ steps.install.outcome }} != 'success' ]; then
-            echo "::set-output name=failed_step::Install dependencies"
-          elif [ ${{ steps.lint.outcome }} != 'success' ]; then
-            echo "::set-output name=failed_step::Run lint"
-          elif [ ${{ steps.test.outcome }} != 'success' ]; then
-            echo "::set-output name=failed_step::Run tests"
-          elif [ ${{ steps.build.outcome }} != 'success' ]; then
-            echo "::set-output name=failed_step::Run build"
-          fi
+          FAILED_STEPS=""
+          [ ${{ steps.install.outcome }} != 'success' ] && FAILED_STEPS+="Install dependencies, "
+          [ ${{ steps.lint.outcome }} != 'success' ] && FAILED_STEPS+="Run lint, "
+          [ ${{ steps.test.outcome }} != 'success' ] && FAILED_STEPS+="Run tests, "
+          [ ${{ steps.build.outcome }} != 'success' ] && FAILED_STEPS+="Run build, "
+          echo "FAILED_STEPS=${FAILED_STEPS::-2}" >> $GITHUB_ENV
 
-      - name: Leave comment on PR if failed
-        if: steps.check-failures.outputs.failed_step != ''
+  comment-and-close:
+    needs: [validate-commit-message, build-and-test]
+    runs-on: ubuntu-latest
+    if: env.status == 'fail' || env.FAILED_STEPS != ''
+    steps:
+      - name: Leave comment on PR
         uses: peter-evans/create-or-update-comment@v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body: "Failed at step: ${{ steps.check-failures.outputs.failed_step }}"
+          body: "Failed at steps: ${{ env.FAILED_STEPS }}"
           reactions: '+1'
-
-      - name: Close Pull Request if failed
-        if: steps.check-failures.outputs.failed_step != ''
-        uses: peter-evans/close-pull@v3
