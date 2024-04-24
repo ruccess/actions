@@ -4,11 +4,15 @@ on:
   pull_request:
     branches: ["dev"]
     types: [opened, synchronize, reopened]
-
 jobs:
   check-and-build:
+    outputs: 
+      STATUS_CHECK: false
+      KEYWORDS: "[\"1\",\"2\",\"3\"]"
     env: 
       URL_PATTERN: https://well-check.atlassian.net
+      status: ""
+      message: ""
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -23,6 +27,8 @@ jobs:
           cache: 'npm'
         
       - name: Check commit messages
+        env: 
+          dsadsa: "dsadads"
         id: check-commits
         run: |
           # 키워드 확인
