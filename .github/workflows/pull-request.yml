@@ -31,9 +31,11 @@ jobs:
           # Check individual conditions
           if ! [[ $COMMIT_MSG =~ "fix" || $COMMIT_MSG =~ "feat" || $COMMIT_MSG =~ "chore" ]]; then
             echo "Keyword condition failed."
+            echo "Keyword condition failed." >> $GITHUB_STEP_SUMMARY
           fi
           if ! [[ $COMMIT_MSG =~ $URL_PATTERN ]]; then
             echo "URL pattern condition failed."
+            echo "URL pattern condition" >> $GITHUB_STEP_SUMMARY
           fi
           
 
@@ -42,11 +44,10 @@ jobs:
           else
             echo "Commit message validation failed."
             echo "outcome=fail" >> $GITHUB_OUTPUT
+            echo "fail" >> $GITHUB_STEP_SUMMARY
           fi
           
-          echo "asdasddsaasd" >> $GITHUB_STEP_SUMMARY
-          cat $GITHUB_STEP_SUMMARY 
-          
+          cat $GITHUB_STEP_SUMMARY
   build-and-test:
     needs: validate-commit-message
     if: needs.validate-commit-message.outputs.commit_status == 'success'
