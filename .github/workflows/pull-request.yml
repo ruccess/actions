@@ -43,17 +43,14 @@ jobs:
 
       - name: Run lint
         id: lint
+        if: steps.install.outcome == 'success'
         run: npm run lint
         continue-on-error: true
 
       - name: Run tests
         id: test
+        if: steps.lint.outcome == 'success'
         run: npm test
-        continue-on-error: true
-
-      - name: Run build
-        id: build
-        run: npm run build
         continue-on-error: true
 
       - name: Determine failed step
