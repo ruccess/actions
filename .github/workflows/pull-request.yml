@@ -33,9 +33,9 @@ jobs:
           echo $status
           echo $KEYWORDS
           echo "status=true" >> "$GITHUB_ENV"
-          echo $status
+          echo "status=true" >> "$GITHUB_OUTPUT"
+          echo ${{ steps.check-commits.outputs.status }}
           
-          echo ${{toJson(steps)}}
           
           for keyword in ${{steps.test.outputs.KEYWORD}}; do
             if [[ $(git show -s --format=%s) =~ "fix feat chore" ]]; then
