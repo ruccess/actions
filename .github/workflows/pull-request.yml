@@ -21,7 +21,7 @@ jobs:
       - name: Get the last non-merge commit
         id: last_commit
         run: |
-          COMMIT_HASH=$(git log --no-merges -n 1 --format="%cn")
+          COMMIT_HASH=$(git log --no-merges -n 1 --format="%B")
           COMMIT_AUTHOR=$(git log --no-merges -n 1 --format="%an")
           COMMIT_MESSAGE=$(git log --no-merges -n 1 --format="%s")
           echo "Last commit hash: $COMMIT_HASH"
@@ -43,12 +43,12 @@ jobs:
         run: |
 
           echo "Fetching the most recent non-merge commit..."
-          COMMIT_MSG=$(git log --no-merges -n 1 --pretty=format:"%H %an %s")
+          COMMIT_MSG=$(git log --no-merges -n 1 --pretty=format:"%B %an %s")
           echo "Fetched commit message: $COMMIT_MSG"
 
           COMMIT_MSG=$(git log --no-merges -n 5)
           echo $COMMIT_MSG
-          echo $(git log --no-merges -n 1 --pretty=format:"%H %an %s")
+          echo $(git log --no-merges -n 1 --pretty=format:"%B %an %s")
           KEYWORDS='["1","2","3"]'
           URL_PATTERN='https://well-check.atlassian.net'
           if [[ (! "$COMMIT_MSG" =~ "fix" && ! "$COMMIT_MSG" =~ "feat" && ! "$COMMIT_MSG" =~ "chore") || (! "$COMMIT_MSG" =~ $URL_PATTERN) ]]; then
