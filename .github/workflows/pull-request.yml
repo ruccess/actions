@@ -67,7 +67,7 @@ jobs:
           echo ${{needs.validate-commit-message.outputs.commit_status}}
           echo "outcome=success" >> $GITHUB_OUTPUT
           
-          echo "asdasddsaasd" >> $GITHUB_STEP_SUMMARY
+          echo "112312321321" >> $GITHUB_STEP_SUMMARY
           cat $GITHUB_STEP_SUMMARY 
           npm install
         continue-on-error: true
@@ -93,5 +93,5 @@ jobs:
         uses: peter-evans/create-or-update-comment@v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body: "Failed at steps: ${{ needs.build-and-test.outputs.FAILED_STEP }}"
+          body: "Failed at steps: ${{ needs.build-and-test.outputs.FAILED_STEP }} $(cat $GITHUB_STEP_SUMMARY)"
           reactions: '+1'
