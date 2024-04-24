@@ -9,34 +9,27 @@ jobs:
   validate-commit-message:
     runs-on: ubuntu-latest
     outputs:
-      commit_status: ${{ steps.filter-commit.outcome }}
+      commit_status: ${{ steps.check-commit.outcome }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Filter merge commits
-        id: filter-commit
-        run: |
-          COMMIT_MSG=$(git show -s --format=%B)
-          if [[ "$COMMIT_MSG" =~ ^Merge ]]; then
-            echo "Merge commit detected. Skipping further actions."
-            exit 78  # Exiting with neutral status
-          else
-            echo "Non-merge commit. Proceeding with checks."
-            exit 0  # Proceed with workflow
-
       - name: Check commit messages
-        if: steps.filter-commit.outcome == 'success'
+        id: check-commit
         run: |
-          KEYWORDS='["1","2","3"]'
-          URL_PATTERN='https://well-check.atlassian.net'
           COMMIT_MSG=$(git show -s --format=%B)
-          echo "Commit Message: $COMMIT_MSG"
-          if [[ ! "$COMMIT_MSG" =~ "fix" && ! "$COMMIT_MSG" =~ "feat" && ! "$COMMIT_MSG" =~ "chore" ]] || [[ ! "$COMMIT_MSG" =~ $URL_PATTERN ]]; then
-            echo "Commit message validation failed."
-            echo "status=fail" >> $GITHUB_ENV
+          if [[ "$COMMIT_MSG" =~ ^Merge\ ]]; then
+            echo "Merge commit detected. Skipping further actions."
+            echo "outcome=neutral" >> $GITHUB_OUTPUT
           else
-            echo "status=success" >> $GITHUB_ENV
+            KEYWORDS='["1","2","3"]'
+            URL_PATTERN='https://well-check.atlassian.net'
+            if [[ ! "$COMMIT_MSG" =~ "fix" && ! "$COMMIT_MSG" =~ "feat" && ! "$COMMIT_MSG" =~ "chore" ]] || [[ ! "$COMMIT_MSG" =~ $URL_PATTERN ]]; then
+              echo "Commit message validation failed."
+              echo "outcome=fail" >> $GITHUB_OUTPUT
+            else
+              echo "outcome=success" >> $GITHUB_OUTPUT
+            fi
 
   build-and-test:
     needs: validate-commit-message
@@ -69,20 +62,20 @@ jobs:
       - name: Determine failed step
         run: |
           FAILED_STEP=""
-          [[ ${{ steps.install.outcome }} != 'success' ]] && FAILED_STEP="Install dependencies"
-          [[ ${{ steps.lint.outcome }} != 'success' ]] && FAILED_STEP="Run lint"
-          [[ ${{ steps.test.outcome }} != 'success' ]] && FAILED_STEP="Run tests"
-          [[ ${{ steps.build.outcome }} != 'success' ]] && FAILED_STEP="Run build"
-          echo "FAILED_STEP=$FAILED_STEP" >> $GITHUB_ENV
+          [[ ${{ steps.install.outcome }} != 'success' ]] && FAILED_STEP="Install dependencies, "
+          [[ ${{ steps.lint.outcome }} != 'success' ]] && FAILED_STEP+="Run lint, "
+          [[ ${{ steps.test.outcome }} != 'success' ]] && FAILED_STEP+="Run tests, "
+          [[ ${{ steps.build.outcome }} != 'success' ]] && FAILED_STEP+="Run build"
+          echo "FAILED_STEP=${FAILED_STEP::-2}" >> $GITHUB_OUTPUT
 
   comment-and-close:
     needs: [validate-commit-message, build-and-test]
-    if: env.status == 'fail' || env.FAILED_STEP != ''
+    if: ${{ needs.build-and-test.outputs.FAILED_STEP }} != ''
     runs-on: ubuntu-latest
     steps:
       - name: Leave comment on PR
         uses: peter-evans/create-or-update-comment@v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body: "Failed at step: ${{ env.FAILED_STEP }}"
+          body: "Failed at steps: ${{ needs.build-and-test.outputs.FAILED_STEP }}"
           reactions: '+1'
