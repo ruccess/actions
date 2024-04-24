@@ -17,7 +17,8 @@ jobs:
       - name: Check commit messages
         id: check-commit
         run: |
-          COMMIT_MSG=$(git show -s --format=%B)
+          COMMIT_MSG=$(git log --no-merges -1 --oneline)
+          echo $COMMIT_MSG
           KEYWORDS='["1","2","3"]'
           URL_PATTERN='https://well-check.atlassian.net'
           if [[ ! "$COMMIT_MSG" =~ "fix" && ! "$COMMIT_MSG" =~ "feat" && ! "$COMMIT_MSG" =~ "chore" ]] || [[ ! "$COMMIT_MSG" =~ $URL_PATTERN ]]; then
