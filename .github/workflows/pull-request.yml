@@ -6,11 +6,35 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
+
   validate-commit-message:
     runs-on: ubuntu-latest
     outputs:
       commit_status: ${{ steps.check-commit.outcome }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+    
+      - name: Fetch all history for all tags and branches
+        run: git fetch --no-tags --prune --depth=50
+    
+      - name: Get the last non-merge commit
+        id: last_commit
+        run: |
+          COMMIT_HASH=$(git log --no-merges -n 1 --format="%H")
+          COMMIT_AUTHOR=$(git log --no-merges -n 1 --format="%an")
+          COMMIT_MESSAGE=$(git log --no-merges -n 1 --format="%s")
+          echo "Last commit hash: $COMMIT_HASH"
+          echo "Last commit author: $COMMIT_AUTHOR"
+          echo "Last commit message: $COMMIT_MESSAGE"
+          echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
+          echo "COMMIT_AUTHOR=$COMMIT_AUTHOR" >> $GITHUB_ENV
+          echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
+    
+      - name: Use the commit data
+        run: |
+          echo "Using commit $COMMIT_HASH by $COMMIT_AUTHOR with message: $COMMIT_MESSAGE"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
