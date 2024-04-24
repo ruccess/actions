@@ -17,9 +17,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          run: | 
-            echo "HEAD_COMMIT_MESSAGE=$(git show -s --format=%s)" >> "$GITHUB_OUTPUT"
-            echo "KEYWORD='fix feat chore'" >> "$GITHUB_OUTPUT"
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -28,17 +25,6 @@ jobs:
       - name: Check commit messages
         id: check-commits
         run: |
-          # 커밋 메시지 검사
-          echo "" 
-          echo "$(git show -s --format=%s)" 
-          echo "${{steps.checkout-code.outputs.HEAD_COMMIT_MESSAGE}}"
-          echo "COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_OUTPUT"
-          
-          echo "HEAD_COMMIT_MESSAGE=$(git show -s --format=%s)" >> "$GITHUB_OUTPUT"
-          echo "${{steps.checkout-code.outputs}}"
-
-          echo "TEST"
-          
           # 키워드 확인
           echo "STATUS_CHECK=fail" >> "$GITHUB_OUTPUT"
           for keyword in ${{steps.test.outputs.KEYWORD}}; do
@@ -53,7 +39,7 @@ jobs:
             echo "status=fail" >> "$GITHUB_ENV"
           else
             # URL 검사
-            if ! [[ ${{steps.check-commits.outputs.COMMIT_MSG}} =~ $URL_PATTERN ]]; then
+            if ! [[ ${{steps.check-commits.outputs.COMMIT_MSG}} =~ ${{env.URL_PATTERN}} ]]; then
               echo "message=Commit message does not contain required URL." >> "$GITHUB_ENV"
               echo "status=fail" >> "$GITHUB_ENV"
             else
