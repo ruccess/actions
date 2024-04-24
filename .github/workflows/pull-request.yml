@@ -28,11 +28,10 @@ jobs:
           # Check individual conditions
           if ! [[ $COMMIT_MSG =~ "fix" || $COMMIT_MSG =~ "feat" || $COMMIT_MSG =~ "chore" ]]; then
             echo "Keyword condition failed."
-            echo "Keyword condition failed." >> $GITHUB_STEP_SUMMARY
+            echo "fix, feat, chore, refactor, hotfix 등 커밋 분류를 커밋메시지에 포함시켜주세요. " >> $GITHUB_STEP_SUMMARY
           fi
           if ! [[ $COMMIT_MSG =~ $URL_PATTERN ]]; then
-            echo "URL pattern condition failed."
-            echo "URL pattern condition" >> $GITHUB_STEP_SUMMARY
+            echo "지라 이슈를 링크 해주세요!" >> $GITHUB_STEP_SUMMARY
           fi
           
 
@@ -51,12 +50,10 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: ${{steps.check-commit.outputs.message}}
-          reactions: '+1'  
           
       - name: Close Pull
         if: steps.check-commit.outputs.outcome == 'fail' || failure()
         uses: peter-evans/close-pull@v3
         with:
           pull-request-number: 1
-          comment: "커밋 메시지가 검증되지 않았습니다. 메시지를 확인해주세요"
           delete-branch: false
