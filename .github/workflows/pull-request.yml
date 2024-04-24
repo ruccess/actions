@@ -16,7 +16,7 @@ jobs:
         id: test
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.GITHUB_SHA }}
+          ref: ${{ github.event.pull_request.head.sha }}
           run: | 
             echo "HEAD_COMMIT_MESSAGE=$(git show -s --format=%s)" >> "$GITHUB_OUTPUT"
             echo "KEYWORD=fix feat chore" >> "$GITHUB_OUTPUT"
@@ -24,7 +24,6 @@ jobs:
             echo ${{env.URL_PATTERN}}
             echo "${{github.event.head_commit.message}}"
             echo "${{github.event.commits[0].message}}"
-            echo "${{steps.test.outputs.HEAD_COMMIT_MESSAGE}}"
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -38,7 +37,8 @@ jobs:
           echo "COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_OUTPUT"
           
           echo "HEAD_COMMIT_MESSAGE=$(git show -s --format=%s)" >> "$GITHUB_OUTPUT"
-          echo "HEAD_COMMIT_MESSAGE=$(git show -s --format=%s)" >> "$GITHUB_OUTPUT"
+          echo "${{steps.test.outputs.HEAD_COMMIT_MESSAGE}}"
+          echo "${{steps.test.outputs}}"
 
           echo "TEST"
           
