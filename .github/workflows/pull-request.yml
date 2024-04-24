@@ -93,5 +93,5 @@ jobs:
         uses: peter-evans/create-or-update-comment@v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body: "Failed at steps: ${{ needs.build-and-test.outputs.FAILED_STEP }} ${{$GITHUB_STEP_SUMMARY}}"
+          body: "Failed at steps: ${{ needs.build-and-test.outputs.FAILED_STEP }}"
           reactions: '+1'
