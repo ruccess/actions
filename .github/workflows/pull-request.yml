@@ -4,9 +4,6 @@ on:
   pull_request:
     branches: ["dev"]
     types: [opened, synchronize, reopened]
-
-env:
-  test: valuse
 jobs:
   validate-commit-message:
     runs-on: ubuntu-latest
@@ -46,15 +43,14 @@ jobs:
             echo "outcome=fail" >> $GITHUB_OUTPUT
           fi
           
-          test=$(cat $GITHUB_STEP_SUMMARY) >> $GITHUB_OUTPUT
-          echo $test
+          echo message=$(cat $GITHUB_STEP_SUMMARY) >> $GITHUB_OUTPUT
           
       - name: Leave comment on PR
         if: steps.check-commit.outputs.outcome == 'fail' || failure()
         uses: peter-evans/create-or-update-comment@v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body: ${{steps.check-commit.outputs.test}}
+          body: ${{steps.check-commit.outputs.message}}
           reactions: '+1'  
           
       - name: Close Pull
@@ -62,5 +58,5 @@ jobs:
         uses: peter-evans/close-pull@v3
         with:
           pull-request-number: 1
-          comment: "Build failed or invalid commit message, closing PR."
+          comment: "커밋 메시지가 검증되지 않았습니다. 메시지를 확인해주세요"
           delete-branch: false
