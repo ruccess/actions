@@ -9,11 +9,13 @@ jobs:
   check-and-build:
     env: 
       URL_PATTERN: https://well-check.atlassian.net
+      
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+        with:
+          ref: ${{ env.GITHUB_SHA }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -26,6 +28,8 @@ jobs:
           # 커밋 메시지 검사
           echo "COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_OUTPUT"
           echo "KEYWORD=fix feat chore" >> "$GITHUB_OUTPUT"
+          
+          echo "HEAD_COMMIT_MESSAGE=$(git show -s --format=%s)" >> "$GITHUB_OUTPUT"
 
           echo ${{env.URL_PATTERN}}
           echo "${{github.event.head_commit.message}}"
