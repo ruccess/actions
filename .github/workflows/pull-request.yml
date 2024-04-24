@@ -31,7 +31,9 @@ jobs:
           # 키워드 확인
           echo $URL_PATTERN
           echo $status
-          echo $GITHUB_OUTPUT
+          echo $KEYWORDS
+          echo "status=true" >> "$GITHUB_ENV"
+          echo $status
           
           
           for keyword in ${{steps.test.outputs.KEYWORD}}; do
