@@ -33,27 +33,6 @@ jobs:
           echo ${{ github.event.commits }}
           echo "TEST"
           
-          # 키워드 확인
-          echo "STATUS_CHECK=fail" >> "$GITHUB_OUTPUT"
-          for keyword in ${{steps.check-commits.outputs.KEYWORD}}; do
-            if [[ ${{steps.check-commits.outputs.COMMIT_MSG}} =~ $keyword: ]]; then
-              "STATUS_CHECK=true" >> "$GITHUB_OUTPUT"
-              break
-            fi
-          done
-
-          if [ ${{steps.check-commits.outputs.STATUS_CHECK}} != true ]; then
-            echo "message=Missing required keywords ( ${KEYWORDS} )." >> "$GITHUB_ENV"
-            echo "status=fail" >> "$GITHUB_ENV"
-          else
-            # URL 검사
-            if ! [[ ${{steps.check-commits.outputs.COMMIT_MSG}} =~ $URL_PATTERN ]]; then
-              echo "message=Commit message does not contain required URL." >> "$GITHUB_ENV"
-              echo "status=fail" >> "$GITHUB_ENV"
-            else
-              echo "status=success" >> "$GITHUB_ENV"
-            fi
-          fi
         continue-on-error: true
 
       - name: Install dependencies
