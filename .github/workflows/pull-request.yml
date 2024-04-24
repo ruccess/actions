@@ -36,11 +36,11 @@ jobs:
           echo "version1='[\"1\",\"2\",\"3\"]'" >> "$Env:GITHUB_OUTPUT"
           echo "version2=[\"1\",\"2\",\"3\"]" >> "$Env:GITHUB_OUTPUT"
           
-          echo ${{ toJson(jobs.steps.checkout-code) }}
-          echo ${{ toJson(jobs.steps.check-commits.outputs) }}
-          echo ${{ toJson(jobs.steps.checkout-code.outputs) }}
-          echo ${{ toJson(jobs.steps.check-commits) }}
-          echo ${{ toJson(jobs.steps.check-commits) }}
+          echo ${{ toJson(steps.checkout-code) }}
+          echo ${{ toJson(steps.check-commits.outputs) }}
+          echo ${{ toJson(steps.checkout-code.outputs) }}
+          echo ${{ toJson(steps.check-commits) }}
+          echo ${{ toJson(steps.check-commits) }}
           
           for keyword in ${{steps.test.outputs.KEYWORD}}; do
             if [[ $(git show -s --format=%s) =~ "fix feat chore" ]]; then
