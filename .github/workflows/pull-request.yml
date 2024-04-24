@@ -64,12 +64,12 @@ jobs:
       - name: Install dependencies
         id: install
         run: |
-          npm install
           echo ${{needs.validate-commit-message.outputs.commit_status}}
           echo "outcome=success" >> $GITHUB_OUTPUT
           
           echo "asdasddsaasd" >> $GITHUB_STEP_SUMMARY
           cat $GITHUB_STEP_SUMMARY 
+          npm install
         continue-on-error: true
 
       - name: Run lint
