@@ -9,8 +9,6 @@ jobs:
   check-and-build:
     env: 
       URL_PATTERN: https://well-check.atlassian.net
-      
-      
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -28,7 +26,9 @@ jobs:
         id: check-commits
         run: |
           # 키워드 확인
-          echo "STATUS_CHECK=fail" >> "$GITHUB_ENV"
+          echo "STATUS_CHECK=fail" >> "$Env:GITHUB_OUTPUT"
+          echo "version1='[\"1\",\"2\",\"3\"]'" >> "$Env:GITHUB_OUTPUT"
+          echo "version2=[\"1\",\"2\",\"3\"]" >> "$Env:GITHUB_OUTPUT"
           echo ${{ toJson(env) }}
           echo ${{ toJson(steps.checkout-code) }}
           echo ${{ toJson(steps.check-commits.outputs) }}
