@@ -17,7 +17,11 @@ jobs:
       - name: Check commit messages
         id: check-commit
         run: |
-        
+
+          echo "Fetching the most recent non-merge commit..."
+          COMMIT_MSG=$(git log --no-merges -n 1 --pretty=format:"%H %an %s")
+          echo "Fetched commit message: $COMMIT_MSG"
+
           COMMIT_MSG=$(git log --no-merges -n 5)
           echo $COMMIT_MSG
           echo $(git log --no-merges -n 1 --pretty=format:"%H %an %s")
