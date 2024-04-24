@@ -44,49 +44,23 @@ jobs:
           else
             echo "Commit message validation failed."
             echo "outcome=fail" >> $GITHUB_OUTPUT
-            echo "fail" >> $GITHUB_STEP_SUMMARY
           fi
           
-          cat $GITHUB_STEP_SUMMARY
-  build-and-test:
-    needs: validate-commit-message
-    if: needs.validate-commit-message.outputs.commit_status == 'success'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-
-      - name: Install dependencies
-        id: install
-        run: |
-          echo ${{needs.validate-commit-message.outputs.commit_status}}
-          echo "outcome=success" >> $GITHUB_OUTPUT
+          test=$(cat $GITHUB_STEP_SUMMARY) >> $GITHUB_OUTPUT
+          echo $test
           
-          echo "112312321321" >> $GITHUB_STEP_SUMMARY
-          cat $GITHUB_STEP_SUMMARY 
-          npm install
-        continue-on-error: true
-
-      - name: Run lint
-        id: lint
-        if: steps.install.outcome == 'success'
-        run: npm run lint
-        continue-on-error: true
-
-      - name: Run tests
-        id: test
-        if: steps.lint.outcome == 'success'
-        run: npm test
-        continue-on-error: true
-          
-  comment-and-close:
-    needs: [validate-commit-message, build-and-test]
-    if: ${{ needs.build-and-test.outputs.FAILED_STEP }} != '' ||
-    runs-on: ubuntu-latest
-    steps:
       - name: Leave comment on PR
+        if: steps.check-commit.outputs.outcome == 'fail' || failure()
         uses: peter-evans/create-or-update-comment@v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body: "Failed at steps: ${{ needs.build-and-test.outputs.FAILED_STEP }} $(cat $GITHUB_STEP_SUMMARY)"
-          reactions: '+1'
+          body: ${{steps.check-commit.outputs.test}}
+          reactions: '+1'  
+          
+      - name: Close Pull
+        if: steps.check-commit.outputs.outcome == 'fail' || failure()
+        uses: peter-evans/close-pull@v3
+        with:
+          pull-request-number: 1
+          comment: "Build failed or invalid commit message, closing PR."
+          delete-branch: false
