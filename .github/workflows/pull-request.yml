@@ -27,10 +27,11 @@ jobs:
           echo $(git log --no-merges -n 1 --pretty=format:"%H %an %s")
           KEYWORDS='["1","2","3"]'
           URL_PATTERN='https://well-check.atlassian.net'
-          if [[ (! "$COMMIT_MSG" =~ "fix" && ! "$COMMIT_MSG" =~ "feat" && ! "$COMMIT_MSG" =~ "chore") || (! "$COMMIT_MSG" =~ $URL_PATTERN) ]]; then
+          if [[ ! "$COMMIT_MSG" =~ "fix" && ! "$COMMIT_MSG" =~ "feat" && ! "$COMMIT_MSG" =~ "chore"]] || [[! "$COMMIT_MSG" =~ $URL_PATTERN) ]]; then
             echo "Commit message validation failed."
             echo "outcome=fail" >> $GITHUB_OUTPUT
           else
+            echo "success"
             echo "outcome=success" >> $GITHUB_OUTPUT
           fi
           echo $commit_status
