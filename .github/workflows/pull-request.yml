@@ -19,7 +19,9 @@ jobs:
         run: |
           COMMIT_MSG=$(git log --no-merges -n 1)
           echo $COMMIT_MSG
-          echo $(git log --no-merges -n 1 --pretty=format:%H %an %s)
+          COMMIT_MSG=$(git log --no-merges -n 1 --pretty=format:%s)
+          echo $COMMIT_MSG
+          echo $(git log --no-merges -n 1 --pretty=format:%s)
           KEYWORDS='["1","2","3"]'
           URL_PATTERN='https://well-check.atlassian.net'
           if [[ (! $COMMIT_MSG =~ "fix" && ! $COMMIT_MSG =~ "feat" && ! $COMMIT_MSG =~ "chore") || (! $COMMIT_MSG =~ $URL_PATTERN) ]]; then
