@@ -23,7 +23,7 @@ jobs:
         run: |
           COMMIT_HASH=$(git log --no-merges -n 1 --format="%B")
           COMMIT_AUTHOR=$(git log --no-merges -n 1 --format="%an")
-          COMMIT_MESSAGE=$(git log --no-merges -n 1 --format="%s")
+          COMMIT_MESSAGE=$(git log --no-merges -n 1 --format=%s)
           echo "Last commit hash: $COMMIT_HASH"
           echo "Last commit author: $COMMIT_AUTHOR"
           echo "Last commit message: $COMMIT_MESSAGE"
@@ -43,7 +43,7 @@ jobs:
         run: |
 
           echo "Fetching the most recent non-merge commit..."
-          COMMIT_MSG=$(git log --no-merges -n 1 --pretty=format:"%B %an %s")
+          COMMIT_MSG=$(git log --no-merges -n 1 --pretty=format:%B %an %s)
           echo "Fetched commit message: $COMMIT_MSG"
 
           COMMIT_MSG=$(git log --no-merges -n 5)
