@@ -23,7 +23,7 @@ jobs:
       - name: Check commit messages
         id: check-commits
         run: |
-          KEYWORDS='["1","2","3"]'
+          KEYWORDS='["feat","fix","test"]'
           URL_PATTERN='https://well-check.atlassian.net'
           COMMIT_MSG=$(git show -s --format=%s)
           echo "KEYWORDS=$KEYWORDS" >> $GITHUB_ENV
