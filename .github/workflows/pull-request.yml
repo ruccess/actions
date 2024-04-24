@@ -17,6 +17,7 @@ jobs:
       - name: Check commit messages
         id: check-commit
         run: |
+        
           COMMIT_MSG=$(git log --no-merges -1 --oneline)
           echo $COMMIT_MSG
           KEYWORDS='["1","2","3"]'
@@ -27,6 +28,7 @@ jobs:
           else
             echo "outcome=success" >> $GITHUB_OUTPUT
           fi
+          echo $commit_status
 
   build-and-test:
     needs: validate-commit-message
@@ -38,7 +40,10 @@ jobs:
 
       - name: Install dependencies
         id: install
-        run: npm install
+        run: |
+          npm install
+          echo "outcome=success" >> $GITHUB_OUTPUT
+          
         continue-on-error: true
 
       - name: Run lint
@@ -52,19 +57,10 @@ jobs:
         if: steps.lint.outcome == 'success'
         run: npm test
         continue-on-error: true
-
-      - name: Determine failed step
-        run: |
-          FAILED_STEP=""
-          [[ ${{ steps.install.outcome }} != 'success' ]] && FAILED_STEP="Install dependencies, "
-          [[ ${{ steps.lint.outcome }} != 'success' ]] && FAILED_STEP+="Run lint, "
-          [[ ${{ steps.test.outcome }} != 'success' ]] && FAILED_STEP+="Run tests, "
-          [[ ${{ steps.build.outcome }} != 'success' ]] && FAILED_STEP+="Run build"
-          echo "FAILED_STEP=${FAILED_STEP::-2}" >> $GITHUB_OUTPUT
-
+          
   comment-and-close:
     needs: [validate-commit-message, build-and-test]
-    if: ${{ needs.build-and-test.outputs.FAILED_STEP }} != ''
+    if: ${{ needs.build-and-test.outputs.FAILED_STEP }} != '' ||
     runs-on: ubuntu-latest
     steps:
       - name: Leave comment on PR
