@@ -11,12 +11,10 @@ jobs:
       KEYWORDS: "[\"1\",\"2\",\"3\"]"
     env: 
       URL_PATTERN: https://well-check.atlassian.net
-      status: ""
-      message: ""
     runs-on: ubuntu-latest
     steps:
-      - id: checkout-code
-        name: Checkout code
+      - name: Checkout code
+        id: checkout-code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -25,18 +23,23 @@ jobs:
         with:
           node-version: 'node'
           cache: 'npm'
-        
       - id: check-commits
         name: Check commit messages
         env: 
-          dsadsa: "dsadads"
+          KEYWORDS: '[\"1\",\"2\",\"3\"]'
+          status: false
         run: |
           # 키워드 확인
-          echo "STATUS_CHECK=fail" >> "$GITHUB_OUTPUT"
+          echo $URL_PATTERN
+          echo $status
+          echo $GITHUB_OUTPUT
+          
+          
           echo "version1='[\"1\",\"2\",\"3\"]'" >> "$GITHUB_OUTPUT"
           echo "version2=[\"1\",\"2\",\"3\"]" >> "$GITHUB_OUTPUT"
           
           echo ${{ toJson(steps) }}
+          echo ${{ toJson(env) }}
           
           for keyword in ${{steps.test.outputs.KEYWORD}}; do
             if [[ $(git show -s --format=%s) =~ "fix feat chore" ]]; then
