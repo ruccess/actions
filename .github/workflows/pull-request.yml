@@ -38,11 +38,7 @@ jobs:
 
           
           echo "asdasddsaasd" >> $GITHUB_STEP_SUMMARY
-          echo "asdasddsaasd" >> $GITHUB_STEP_SUMMARY
-          echo "asdasddsaasd" >> $GITHUB_STEP_SUMMARY
-          echo "asdasddsaasd" >> $GITHUB_STEP_SUMMARY
-          echo "asdasddsaasd" >> $GITHUB_STEP_SUMMARY
-          echo "asdasddsaasd" >> $GITHUB_STEP_SUMMARY
+          echo ${{$GITHUB_STEP_SUMMARY}}
           
           outcome=tesdt
           echo $outcome
@@ -54,7 +50,6 @@ jobs:
           echo $test
           echo ${{env.test}}
 
-          echo 'export test=value' >> /etc/environment
           echo $test
           echo ${{env.test}}
 
@@ -73,6 +68,8 @@ jobs:
           echo ${{needs.validate-commit-message.outputs.commit_status}}
           echo "outcome=success" >> $GITHUB_OUTPUT
           
+          echo "asdasddsaasd" >> $GITHUB_STEP_SUMMARY
+          echo ${{$GITHUB_STEP_SUMMARY}}
         continue-on-error: true
 
       - name: Run lint
@@ -96,5 +93,5 @@ jobs:
         uses: peter-evans/create-or-update-comment@v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body: "Failed at steps: ${{ needs.build-and-test.outputs.FAILED_STEP }}"
+          body: "Failed at steps: ${{ needs.build-and-test.outputs.FAILED_STEP }} ${{$GITHUB_STEP_SUMMARY}}"
           reactions: '+1'
