@@ -21,6 +21,7 @@ jobs:
       - name: Get the last non-merge commit
         id: last_commit
         run: |
+          echo ${{ toJson(github) }}
           COMMIT_HASH=$(git log --no-merges -n 1 --format="%B")
           COMMIT_AUTHOR=$(git log --no-merges -n 1 --format="%an")
           COMMIT_MESSAGE=$(git log --no-merges -n 1 --format="%s")
