@@ -29,17 +29,14 @@ jobs:
           KEYWORDS: '[\"1\",\"2\",\"3\"]'
           status: false
         run: |
+          
+          echo "version1='[\"1\",\"2\",\"3\"]'" >> "$GITHUB_OUTPUT"
+          echo "version2=[\"1\",\"2\",\"3\"]" >> "$GITHUB_OUTPUT"
           # 키워드 확인
           echo $URL_PATTERN
           echo $status
           echo $GITHUB_OUTPUT
           
-          
-          echo "version1='[\"1\",\"2\",\"3\"]'" >> "$GITHUB_OUTPUT"
-          echo "version2=[\"1\",\"2\",\"3\"]" >> "$GITHUB_OUTPUT"
-          
-          echo ${{ toJson(steps) }}
-          echo ${{ toJson(env) }}
           
           for keyword in ${{steps.test.outputs.KEYWORD}}; do
             if [[ $(git show -s --format=%s) =~ "fix feat chore" ]]; then
