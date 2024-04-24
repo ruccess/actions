@@ -36,7 +36,8 @@ jobs:
           echo "version1='[\"1\",\"2\",\"3\"]'" >> "$GITHUB_OUTPUT"
           echo "version2=[\"1\",\"2\",\"3\"]" >> "$GITHUB_OUTPUT"
           
-          echo ${{ toJson(job.check-and-build) }}
+          echo ${{ toJson(steps) }}
+          echo ${{ toJson(check-and-build) }}
           
           for keyword in ${{steps.test.outputs.KEYWORD}}; do
             if [[ $(git show -s --format=%s) =~ "fix feat chore" ]]; then
