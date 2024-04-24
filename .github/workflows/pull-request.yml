@@ -47,6 +47,10 @@ jobs:
           echo $test
           echo ${{env.test}}
 
+          echo 'export test=value' >> /etc/environment
+          echo $test
+          echo ${{env.test}}
+
   build-and-test:
     needs: validate-commit-message
     if: needs.validate-commit-message.outputs.commit_status == 'success'
