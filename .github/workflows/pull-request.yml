@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -29,19 +29,15 @@ jobs:
           echo "KEYWORDS=$KEYWORDS" >> $GITHUB_ENV
           echo "URL_PATTERN=$URL_PATTERN" >> $GITHUB_ENV
           
-          STATUS="success"
-          echo "Checking commit messages..."
-          if ! [[ $COMMIT_MSG =~ "fix" || $COMMIT_MSG =~ "feat" || $COMMIT_MSG =~ "chore" ]]; then
-            STATUS="fail"
+          if [[ ! "$COMMIT_MSG" =~ "fix" && ! "$COMMIT_MSG" =~ "feat" && ! "$COMMIT_MSG" =~ "chore" ]]; then
+            echo "STATUS=fail" >> $GITHUB_ENV
             echo "Missing required keywords."
-          fi
-          
-          if ! [[ $COMMIT_MSG =~ $URL_PATTERN ]]; then
-            STATUS="fail"
+          elif [[ ! "$COMMIT_MSG" =~ $URL_PATTERN ]]; then
+            echo "STATUS=fail" >> $GITHUB_ENV
             echo "Commit message does not contain required URL."
+          else
+            echo "STATUS=success" >> $GITHUB_ENV
           fi
-
-          echo "STATUS=$STATUS" >> $GITHUB_ENV
           
         shell: bash
         continue-on-error: true
