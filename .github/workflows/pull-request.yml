@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        id: test
+        id: checkout-code
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -29,20 +29,20 @@ jobs:
         id: check-commits
         run: |
           # 커밋 메시지 검사
+          echo "" 
           echo "$(git show -s --format=%s)" 
-          echo "$(git show -s --format=%s)" 
-          echo "${{steps.test.outputs.HEAD_COMMIT_MESSAGE}}"
+          echo "${{steps.checkout-code.outputs.HEAD_COMMIT_MESSAGE}}"
           echo "COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_OUTPUT"
           
           echo "HEAD_COMMIT_MESSAGE=$(git show -s --format=%s)" >> "$GITHUB_OUTPUT"
-          echo "${{steps.test.outputs}}"
+          echo "${{steps.checkout-code.outputs}}"
 
           echo "TEST"
           
           # 키워드 확인
           echo "STATUS_CHECK=fail" >> "$GITHUB_OUTPUT"
           for keyword in ${{steps.test.outputs.KEYWORD}}; do
-            if [[ ${{steps.check-commits.outputs.COMMIT_MSG}} =~ $keyword: ]]; then
+            if [[ $(git show -s --format=%s) =~ "fix feat chore" ]]; then
               "STATUS_CHECK=true" >> "$GITHUB_OUTPUT"
               break
             fi
