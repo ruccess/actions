@@ -26,12 +26,12 @@ jobs:
           
           # Check individual conditions
           if ! [[ $COMMIT_MSG =~ fix|feat|chore|reafactor|hotfix ]]; then
-            echo "fix, feat, chore, refactor, hotfix 등 커밋 분류를 커밋메시지에 포함시켜주세요. \n" >> $GITHUB_STEP_SUMMARY
+            echo "fix, feat, chore, refactor, hotfix 등 커밋 분류를 커밋메시지에 포함시켜주세요. " >> $GITHUB_STEP_SUMMARY
             echo "outcome=fail" >> $GITHUB_OUTPUT
             echo "PR_COMMIT_MSG=Keyword condition failed." >> $GITHUB_OUTPUT
           fi
           if ! [[ $COMMIT_MSG =~ $URL_PATTERN ]]; then
-            echo "지라 이슈를 링크 해주세요. \n" >> $GITHUB_STEP_SUMMARY
+            echo "지라 이슈를 링크 해주세요. " >> $GITHUB_STEP_SUMMARY
             echo "outcome=fail" >> $GITHUB_OUTPUT
             echo "PR_COMMIT_MSG=issue is not contains this commit" >> $GITHUB_OUTPUT
           fi
@@ -50,6 +50,6 @@ jobs:
         if: steps.check-commit.outputs.outcome == 'fail' || failure()
         uses: peter-evans/close-pull@v3
         with:
-          pull-request-number: 1
+          pull-request-number: ${{ github.event.pull_request.number }}
           comment: ${{steps.check-commit.outputs.PR_COMMIT_MSG}}
           delete-branch: false
