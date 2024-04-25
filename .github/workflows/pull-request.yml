@@ -38,7 +38,6 @@ jobs:
           
           echo message=$(cat $GITHUB_STEP_SUMMARY) >> $GITHUB_OUTPUT
           
-          
       - name: Leave comment on PR
         if: steps.check-commit.outputs.outcome == 'fail' || failure()
         uses: peter-evans/create-or-update-comment@v4.0.0
@@ -53,3 +52,8 @@ jobs:
           pull-request-number: ${{ github.event.pull_request.number }}
           comment: ${{steps.check-commit.outputs.PR_COMMIT_MSG}}
           delete-branch: false
+          
+      - name: throw
+        if: steps.check-commit.outputs.outcome == 'fail' || failure()
+        run: exit 1
+
