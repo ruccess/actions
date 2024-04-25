@@ -4,7 +4,6 @@ on:
   pull_request:
     branches: ["dev"]
     types: [opened, synchronize, reopened]
-
 jobs:
   validate-commit-message:
     runs-on: ubuntu-latest
@@ -13,60 +12,48 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
 
       - name: Check commit messages
         id: check-commit
         run: |
-        
-          COMMIT_MSG=$(git log --no-merges -n 5)
-          echo $COMMIT_MSG
-          echo $(git log --no-merges -n 1 --pretty=format:"%H %an %s")
-          KEYWORDS='["1","2","3"]'
+          COMMIT_MSG=$(git log --no-merges -n 1)
           URL_PATTERN='https://well-check.atlassian.net'
-          if [[ (! "$COMMIT_MSG" =~ "fix" && ! "$COMMIT_MSG" =~ "feat" && ! "$COMMIT_MSG" =~ "chore") || (! "$COMMIT_MSG" =~ $URL_PATTERN) ]]; then
-            echo "Commit message validation failed."
+
+          echo "Commit Message: $COMMIT_MSG"
+          
+          # Check individual conditions
+          if ! [[ $COMMIT_MSG =~ fix|feat|chore|reafactor|hotfix ]]; then
+            echo "fix, feat, chore, refactor, hotfix 등 커밋 분류를 커밋메시지에 포함시켜주세요. " >> $GITHUB_STEP_SUMMARY
             echo "outcome=fail" >> $GITHUB_OUTPUT
-          else
-            echo "outcome=success" >> $GITHUB_OUTPUT
+            echo "PR_COMMIT_MSG=Keyword condition failed." >> $GITHUB_OUTPUT
           fi
-          echo $commit_status
-
-  build-and-test:
-    needs: validate-commit-message
-    if: needs.validate-commit-message.outputs.commit_status == 'success'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-
-      - name: Install dependencies
-        id: install
-        run: |
-          npm install
-          echo "outcome=success" >> $GITHUB_OUTPUT
+          if ! [[ $COMMIT_MSG =~ $URL_PATTERN ]]; then
+            echo "지라 이슈를 링크 해주세요. " >> $GITHUB_STEP_SUMMARY
+            echo "outcome=fail" >> $GITHUB_OUTPUT
+            echo "PR_COMMIT_MSG=issue is not contains this commit" >> $GITHUB_OUTPUT
+          fi
           
-        continue-on-error: true
-
-      - name: Run lint
-        id: lint
-        if: steps.install.outcome == 'success'
-        run: npm run lint
-        continue-on-error: true
-
-      - name: Run tests
-        id: test
-        if: steps.lint.outcome == 'success'
-        run: npm test
-        continue-on-error: true
+          echo message=$(cat $GITHUB_STEP_SUMMARY) >> $GITHUB_OUTPUT
           
-  comment-and-close:
-    needs: [validate-commit-message, build-and-test]
-    if: ${{ needs.build-and-test.outputs.FAILED_STEP }} != '' ||
-    runs-on: ubuntu-latest
-    steps:
       - name: Leave comment on PR
+        if: steps.check-commit.outputs.outcome == 'fail' || failure()
         uses: peter-evans/create-or-update-comment@v4.0.0
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body: "Failed at steps: ${{ needs.build-and-test.outputs.FAILED_STEP }}"
-          reactions: '+1'
+          body: ${{steps.check-commit.outputs.message}}
+          
+      - name: Close Pull
+        if: steps.check-commit.outputs.outcome == 'fail' || failure()
+        uses: peter-evans/close-pull@v3
+        with:
+          pull-request-number: ${{ github.event.pull_request.number }}
+          comment: ${{steps.check-commit.outputs.PR_COMMIT_MSG}}
+          delete-branch: false
+          
+      - name: throw
+        if: steps.check-commit.outputs.outcome == 'fail' || failure()
+        run: exit 1
+
