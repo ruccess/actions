@@ -4,71 +4,55 @@ on:
   pull_request:
     branches: ["dev"]
     types: [opened, synchronize, reopened]
-  push:
-    branches: []
-
 jobs:
-  check-and-build:
+  validate-commit-message:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [14.x, 16.x, 18.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    outputs:
+      commit_status: ${{ steps.check-commit.outcome }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
 
       - name: Check commit messages
-        id: check-commits
+        id: check-commit
         run: |
-          GITHUB_OUTPUT=test
-          # 커밋 메시지 검사
-          COMMIT_MSG=${{ github.event.workflow_run.head_commit.message }}
-          COMMIT_MSG="fix:test"
-          KEYWORDS=("fix" "feat" "chore" "docs" "style" "refactor" "test" "perf")
-          URL_PATTERN="https://well-check.atlassian.net" 
-          echo "status=fail" >> "$GITHUB_OUTPUT"
+          COMMIT_MSG=$(git log --no-merges -n 1)
+          URL_PATTERN='https://well-check.atlassian.net'
 
-          # 키워드 확인
-          STATUS_CHECK=false
-          for keyword in "${KEYWORDS[@]}"; do
-            if [[ "$COMMIT_MSG" =~ $keyword: ]]; then
-              STATUS_CHECK=true
-              break
-            fi
-          done
-
-          if [ "$STATUS_CHECK" != true ]; then
-            echo "message=Missing required keywords ($KEYWORDS)" >> "$GITHUB_OUTPUT"  
-            STATUS_CHECK=ture
-          else
-            # URL 검사
-            if ! [[ "$COMMIT_MSG" =~ $URL_PATTERN ]]; then
-              echo "message=Commit message does not contain required URL." >> "$GITHUB_OUTPUT"  
-              STATUS_CHECK=false  # URL이 없으면 키워드 검사 결과도 무시
-            else
-              echo "status=success" >> "$GITHUB_OUTPUT"
-            fi
+          echo "Commit Message: $COMMIT_MSG"
+          
+          # Check individual conditions
+          if ! [[ $COMMIT_MSG =~ fix|feat|chore|reafactor|hotfix ]]; then
+            echo "fix, feat, chore, refactor, hotfix 등 커밋 분류를 커밋메시지에 포함시켜주세요. " >> $GITHUB_STEP_SUMMARY
+            echo "outcome=fail" >> $GITHUB_OUTPUT
+            echo "PR_COMMIT_MSG=Keyword condition failed." >> $GITHUB_OUTPUT
           fi
-
-      - name: Run build
-        if: steps.check-commits.outputs.status == 'success'
-        run: npm install && npm run build
-        # 빌드 실패 시 status를 fail로 설정합니다.
-        continue-on-error: true
-
+          if ! [[ $COMMIT_MSG =~ $URL_PATTERN ]]; then
+            echo "지라 이슈를 링크 해주세요. " >> $GITHUB_STEP_SUMMARY
+            echo "outcome=fail" >> $GITHUB_OUTPUT
+            echo "PR_COMMIT_MSG=issue is not contains this commit" >> $GITHUB_OUTPUT
+          fi
+          
+          echo message=$(cat $GITHUB_STEP_SUMMARY) >> $GITHUB_OUTPUT
+          
+      - name: Leave comment on PR
+        if: steps.check-commit.outputs.outcome == 'fail' || failure()
+        uses: peter-evans/create-or-update-comment@v4.0.0
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{steps.check-commit.outputs.message}}
+          
       - name: Close Pull
-        if: steps.check-commits.outputs.status == 'fail' || failure()
+        if: steps.check-commit.outputs.outcome == 'fail' || failure()
         uses: peter-evans/close-pull@v3
         with:
-          pull-request-number: 1
-          comment: "Build failed or invalid commit message, closing PR."
+          pull-request-number: ${{ github.event.pull_request.number }}
+          comment: ${{steps.check-commit.outputs.PR_COMMIT_MSG}}
           delete-branch: false
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm run build
-      - run: npm run lint
+          
+      - name: throw
+        if: steps.check-commit.outputs.outcome == 'fail' || failure()
+        run: exit 1
