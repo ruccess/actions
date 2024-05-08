@@ -1,0 +1,49 @@
+name: Run Specific Scripts on EC2
+
+on:
+  workflow_dispatch:
+    inputs:
+      ec2_user:
+        description: "SSH User"
+        required: true
+        default: "ec2-user"
+      ec2_host:
+        description: "EC2 Host IP"
+        required: true
+      script_file:
+        description: "Name of the script file to run"
+        required: true
+        type: choice
+        options:
+          - "./server/patch_wd-api.sh"
+          - "./server/patch_wd-cron.sh"
+          - "cat.sh"
+          - "patch_wd-coach-web.sh"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Set up SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Add SSH Host Key to Known Hosts
+        run: |
+          ssh-keyscan -H "${{ github.event.inputs.ec2_host }}" >> ~/.ssh/known_hosts
+
+      - name: Run Script on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no "${{ github.event.inputs.ec2_user }}"@${{ github.event.inputs.ec2_host }} 'bash -s' < "${{ github.event.inputs.script_file }}"
