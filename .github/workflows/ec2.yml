@@ -46,4 +46,4 @@ jobs:
 
       - name: Run Script on EC2
         run: |
-          ssh -o StrictHostKeyChecking=no "${{ github.event.inputs.ec2_user }}"@${{ github.event.inputs.ec2_host }} 'bash -s' < "${{ github.event.inputs.script_file }}"
+          ssh -o StrictHostKeyChecking=no "${{ github.event.inputs.ec2_user }}"@${{ github.event.inputs.ec2_host }} bash "${{ github.event.inputs.script_file }}
