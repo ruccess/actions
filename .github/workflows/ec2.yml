@@ -17,8 +17,8 @@ on:
         options:
           - "./server/patch_wd-api.sh"
           - "./server/patch_wd-cron.sh"
-          - "cat.sh"
-          - "patch_wd-coach-web.sh"
+          - "./cat.sh"
+          - "./patch_wd-coach-web.sh"
 
 jobs:
   deploy:
